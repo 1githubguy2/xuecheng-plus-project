@@ -1,13 +1,11 @@
-package com.xuecheng.content.service.impl;
+package com.xuecheng.impl;
 
+import com.xuecheng.CourseBaseService;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.mapper.CourseBaseMapper;
-import com.xuecheng.content.service.CourseBaseService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * <p>
