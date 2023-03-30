@@ -17,9 +17,9 @@ import java.util.List;
 @RestController
 public class CourseCategoryController {
     @Autowired
-    private CourseCategoryService courseCategoryService;
+    private CourseCategoryService courseCategoryServiceImpl;
     @GetMapping("/course-category/tree-nodes")
     public List<CourseCategoryTreeDto> queryTreeNodes() {
-        return courseCategoryService.queryTreeNodes("1");
+        return courseCategoryServiceImpl.queryTreeNodes("1");
     }
 }
