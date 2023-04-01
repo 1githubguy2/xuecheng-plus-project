@@ -132,5 +132,6 @@ public class MinioTest {
         // 获取到的是本机vmware虚拟机V8网卡的地址？---》去关闭虚拟机的网卡就可以了
         System.out.println("Local HostAddress:" + addr.getHostAddress());
         String hostname = addr.getHostName();
+
     }
 }
