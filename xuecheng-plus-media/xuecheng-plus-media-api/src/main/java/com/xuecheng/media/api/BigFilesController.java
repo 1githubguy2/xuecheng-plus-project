@@ -5,6 +5,7 @@ import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.service.MediaFileService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import java.io.File;
  * @date 2023/3/31 14:11
  */
 @Api(value = "大文件上传接口", tags = "大文件上传接口")
+@Slf4j
 @RestController
 public class BigFilesController {
 
@@ -62,6 +64,8 @@ public class BigFilesController {
         uploadFileParamsDto.setTags("视频文件");
         uploadFileParamsDto.setFileType("001002");
         Long companyId = 1232141425L;
-        return mediaFileServiceImpl.mergechunks(companyId, fileMd5, chunkTotal, uploadFileParamsDto);
+        RestResponse restResponse = mediaFileServiceImpl.mergechunks(companyId, fileMd5, chunkTotal, uploadFileParamsDto);
+        log.debug("合并文件执行结束:{}", restResponse);
+        return restResponse;
     }
 }

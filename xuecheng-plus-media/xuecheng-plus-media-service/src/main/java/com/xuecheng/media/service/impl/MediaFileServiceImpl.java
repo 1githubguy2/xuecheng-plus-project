@@ -9,10 +9,12 @@ import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.*;
 import io.minio.messages.DeleteError;
@@ -57,6 +59,8 @@ public class MediaFileServiceImpl implements MediaFileService {
     //存储视频
     @Value("${minio.bucket.videofiles}")
     private String bucketVideo;
+    @Autowired
+    private MediaProcessMapper mediaProcessMapper;
 
     @Override
     public PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
@@ -152,11 +156,32 @@ public class MediaFileServiceImpl implements MediaFileService {
                 log.debug("向数据库保存文件失败,bucket:{},objectName:{}", bucket, objectName);
                 return null;
             }
+            //记录待处理任务
+            addWaitingTask(mediaFiles);
             return mediaFiles;
 
         }
         return mediaFiles;
-
+    }
+    private void addWaitingTask(MediaFiles mediaFiles) {
+        //通过mimeType判断如果是avi视频才写入待处理任务
+        //文件名称
+        String filename = mediaFiles.getFilename();
+        //文件扩展名
+        String extension = filename.substring(filename.lastIndexOf("."));
+        //获取文件的mimeType
+        String mimeType = getMimeType(extension);
+        if("video/x-msvideo".equals(mimeType)) { //如果是avi视频则写入待处理任务
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles, mediaProcess);
+            //状态是未处理
+            mediaProcess.setStatus("1");
+            mediaProcess.setCreateDate(LocalDateTime.now());
+            mediaProcess.setFailCount(0);//失败次数默认是0
+            mediaProcess.setUrl(null);
+            mediaProcessMapper.insert(mediaProcess);
+        }
+        //向待处理任务表MediaProcess插入待处理任务记录
     }
 
     /**
@@ -168,6 +193,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName    对象名
      * @return
      */
+    @Override
     public boolean addMediaFilesToMinIO(String localFilePath, String mimeType, String bucket, String objectName) {
         try {
             UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
@@ -372,6 +398,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName 对象名称
      * @return 下载后的文件
      */
+    @Override
     public File downloadFileFromMinIO(String bucket, String objectName) {
         //临时文件
         File minioFile = null;
