@@ -1,12 +1,22 @@
 package com.xuecheng.content.service.jobhandler;
 
+import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.feignclient.CourseIndex;
+import com.xuecheng.content.feignclient.SearchServiceClient;
+import com.xuecheng.content.mapper.CoursePublishMapper;
+import com.xuecheng.content.model.po.CoursePublish;
+import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
 import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 /**
  * @author unbroken
@@ -17,6 +27,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class CoursePublishTask extends MessageProcessAbstract {
+
+    @Autowired
+    private CoursePublishService coursePublishService;
+    @Autowired
+    private SearchServiceClient searchServiceClient;
+    @Autowired
+    private CoursePublishMapper coursePublishMapper;
 
     //执行课程发布任务的逻辑，如果此方法抛出异常说明任务执行失败
     //任务调度入口
@@ -56,8 +73,13 @@ public class CoursePublishTask extends MessageProcessAbstract {
             log.debug("课程静态化任务完成，无需处理...");
             return;
         }
-        //开始进行课程静态化
-//        int i = 1 / 0;//制造一个异常表示任务执行中有问题
+        //开始进行课程静态化 生成html页面
+        File file = coursePublishService.generateCourseHtml(courseId);
+        if (file == null) {
+            XueChengPlusException.cast("生成的静态页面为空");
+        }
+        //将html上传到minio
+        coursePublishService.uploadCourseHtml(courseId, file);
         //..任务处理完成写任务状态为完成
         mqMessageService.completedStageOne(taskId);
     }
@@ -74,8 +96,15 @@ public class CoursePublishTask extends MessageProcessAbstract {
             log.debug("课程索引信息已写入，无需处理...");
             return;
         }
-        //查询课程信息，调用搜索服务添加索引...
-
+        //查询课程信息，调用搜索服务添加索引接口
+        //从课程发布表查询课程信息
+        CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+        CourseIndex courseIndex = new CourseIndex();
+        BeanUtils.copyProperties(coursePublish, courseIndex);
+        boolean b = searchServiceClient.add(courseIndex);
+        if (!b) {
+            XueChengPlusException.cast("远程调用搜索服务添加课程索引失败");
+        }
         //完成本阶段的任务
         mqMessageService.completedStageTwo(taskId);
     }

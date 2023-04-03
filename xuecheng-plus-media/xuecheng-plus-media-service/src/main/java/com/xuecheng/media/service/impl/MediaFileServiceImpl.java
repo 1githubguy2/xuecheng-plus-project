@@ -22,6 +22,7 @@ import io.minio.messages.DeleteObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,7 +85,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     //    @Transactional 有网络访问的逻辑不要用事务控制，因为网络访问可能时间很长，导致数据库资源被长时间占用
     @Override
-    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String localFilePath) {
+    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String localFilePath, String objectName) {
         //文件名
         String filename = uploadFileParamsDto.getFilename();
         //先得到扩展名
@@ -95,7 +96,10 @@ public class MediaFileServiceImpl implements MediaFileService {
         String defaultFolderPath = getDefaultFolderPath();
         //文件的md5值
         String fileMd5 = getFileMd5(new File(localFilePath));
-        String objectName = defaultFolderPath + fileMd5 + extension;
+        if(StringUtils.isEmpty(objectName)) {
+            //objectName为空，则使用默认年月日去存储
+            objectName = defaultFolderPath + fileMd5 + extension;
+        }
         //将文件上传到minio(通过网络访问，可能耗时很长)
         boolean result = addMediaFilesToMinIO(localFilePath, mimeType, bucketMediaFiles, objectName);
         if (!result) {
