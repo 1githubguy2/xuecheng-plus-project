@@ -4,17 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
+@EnableFeignClients(basePackages = "com.xuecheng.ucenter.feignclient")
 @SpringBootApplication
 public class AuthApplication {
 
@@ -22,4 +15,9 @@ public class AuthApplication {
         SpringApplication.run(AuthApplication.class, args);
     }
 
+    //和第三方服务进行交互，使用RestTemplate，所以这里需要注入RestTemplate
+    @Bean
+    RestTemplate restTemplate() {
+        return new RestTemplate(new OkHttp3ClientHttpRequestFactory());
+    }
 }

@@ -9,6 +9,7 @@ import com.xuecheng.content.model.dto.EditCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.service.CourseBaseInfoService;
+import com.xuecheng.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +26,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class CourseBaseInfoController {
     @Autowired
-    private CourseBaseInfoService courseBaseInfoServiceImpl;
+    private CourseBaseInfoService courseBaseInfoService;
 
     @ApiOperation("课程查询接口")
     @PostMapping("/course/list")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
-
-        return courseBaseInfoServiceImpl.queryCourseBaseList(pageParams, queryCourseParamsDto);
+        return courseBaseInfoService.queryCourseBaseList(pageParams, queryCourseParamsDto);
     }
 
     @ApiOperation("新增课程")
@@ -39,13 +39,19 @@ public class CourseBaseInfoController {
     public CourseBaseInfoDto createCourseBase(@RequestBody @Validated(ValidationGroups.Insert.class) AddCourseDto addCourseDto) {
         //获取到用户所属机构的id
         Long companyId = 1232141425L;
-        return courseBaseInfoServiceImpl.createCourseBase(companyId, addCourseDto);
+        return courseBaseInfoService.createCourseBase(companyId, addCourseDto);
     }
 
     @ApiOperation("根据课程id查询接口")
     @GetMapping("/course/{courseId}")
     public CourseBaseInfoDto getCourseBaseById(@PathVariable Long courseId) {
-        return courseBaseInfoServiceImpl.getCourseBaseInfo(courseId);
+        //获取当前用户的身份
+        //SecurityContextHolder.getContext()底层使用的是ThreadLocal，就是把用户的身份放在线程的变量ThreadLocal当中，只要这个线程的所有方法都可以拿到用户的身份
+//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        System.out.println(principal);
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        System.out.println(user);
+        return courseBaseInfoService.getCourseBaseInfo(courseId);
     }
 
     @ApiOperation("更新课程")
@@ -53,6 +59,6 @@ public class CourseBaseInfoController {
     public CourseBaseInfoDto modifyCourseBase(@RequestBody @Validated(ValidationGroups.Update.class) EditCourseDto editCourseDto) {
         //获取到用户所属机构的id
         Long companyId = 1232141425L;
-        return courseBaseInfoServiceImpl.updateCourseBase(companyId, editCourseDto);
+        return courseBaseInfoService.updateCourseBase(companyId, editCourseDto);
     }
 }
