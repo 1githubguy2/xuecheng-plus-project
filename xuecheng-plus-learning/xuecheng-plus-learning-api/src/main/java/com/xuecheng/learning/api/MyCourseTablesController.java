@@ -43,8 +43,8 @@ public class MyCourseTablesController {
         //用户id
         String userId = user.getId();
         //添加选课
-        myCourseTablesService.addChooseCourse(userId, courseId);
-        return null;
+        XcChooseCourseDto xcChooseCourseDto = myCourseTablesService.addChooseCourse(userId, courseId);
+        return xcChooseCourseDto;
     }
 
     @ApiOperation("查询学习资格")

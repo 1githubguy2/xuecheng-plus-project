@@ -32,7 +32,7 @@ public class AlipayTest {
         AlipayClient alipayClient = new DefaultAlipayClient(AlipayConfig.URL, APP_ID, APP_PRIVATE_KEY, AlipayConfig.FORMAT, AlipayConfig.CHARSET, ALIPAY_PUBLIC_KEY, AlipayConfig.SIGNTYPE);
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         JSONObject bizContent = new JSONObject();
-        bizContent.put("out_trade_no","202303200101020012");
+        bizContent.put("out_trade_no","1643609739513925632");
         request.setBizContent(bizContent.toString());
         AlipayTradeQueryResponse response = alipayClient.execute(request);//通过alipayClient调用API,获得对应的response类
         String body = response.getBody();
