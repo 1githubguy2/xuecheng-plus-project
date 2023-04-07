@@ -1,5 +1,7 @@
 ### 申请验证码
-POST {{checkcode_host}}/checkcode/pic
+POST {{checkcode_host_remote}}/checkcode/pic
+
+#POST {{checkcode_host}}/checkcode/pic
 
 ### 校验验证码
 POST {{checkcode_host}}/checkcode/verify?key=checkcode:8aa6df5bbd224bb096270b6185f5ecd5&code=NZJA
